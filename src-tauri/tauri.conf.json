@@ -8,7 +8,7 @@
   },
   "package": {
     "productName": "wisprovident",
-    "version": "0.1.0"
+    "version": "0.1.1"
   },
   "tauri": {
     "allowlist": {
@@ -26,6 +26,17 @@
         "createDir": true,
         "exists": true,
         "scope": ["**"]
+      },
+      "window": {
+        "all": false,
+        "close": true,
+        "hide": true,
+        "show": true,
+        "maximize": true,
+        "minimize": true,
+        "unmaximize": true,
+        "unminimize": true,
+        "startDragging": true
       }
     },
     "bundle": {
@@ -49,7 +60,8 @@
         "resizable": true,
         "title": "Wisprovident",
         "width": 800,
-        "height": 600
+        "height": 600,
+        "decorations": false
       }
     ]
   }

@@ -1,9 +1,19 @@
-import {Button, makeStyles, SelectTabData, SelectTabEvent, shorthands, Tab, TabList} from "@fluentui/react-components";
-import { MoneyRegular, TimerRegular } from "@fluentui/react-icons";
+import {
+    Button,
+    makeStyles,
+    SelectTabData,
+    SelectTabEvent,
+    shorthands,
+    Tab,
+    TabList,
+    Toolbar, ToolbarButton
+} from "@fluentui/react-components";
+import { MoneyRegular, TimerRegular, DismissCircleRegular, ArrowMinimizeRegular } from "@fluentui/react-icons";
 import {fs, path} from "@tauri-apps/api";
 import { useEffect, useState} from "react";
 import toml from "toml";
 import Home from "./pages/Home.tsx";
+import {appWindow} from "@tauri-apps/api/window";
 
 const useStyles = makeStyles({
     root: {
@@ -14,7 +24,7 @@ const useStyles = makeStyles({
     },
     indicator: {
         position: "absolute",
-        top: "0",
+        bottom: "0",
         right: "0",
         ...shorthands.margin(["10px", "5px"]),
     },
@@ -23,6 +33,11 @@ const useStyles = makeStyles({
     },
     page: {
         ...shorthands.margin(["20px", "20px"])
+    },
+    toolbar: {
+        position: "absolute",
+        top: "0",
+        right: "0"
     }
 })
 
@@ -35,19 +50,19 @@ function App() {
     const [timeAvailable, setAvailable] = useState("")
     const [start, setStart] = useState(true);
 
+    async function refreshMoney() {
+        let pat: string = await path.join(await path.appDataDir(), "data.toml"),
+            data = toml.parse(await fs.readTextFile(pat)), coins = data.money;
+        if (coins === undefined) return;
+        setMoney(coins);
+    }
+
     // @ts-ignore
     useEffect(async () => {
         let pat: string = await path.join(await path.appDataDir(), "data.toml");
         if (!(await fs.exists(await path.appDataDir()))) await fs.createDir(await path.appDataDir());
         if (!(await fs.exists(pat))) {
             await fs.writeFile(pat, "money=0\ninv_path=\"\"");
-        }
-
-        async function refreshMoney() {
-                let pat: string = await path.join(await path.appDataDir(), "data.toml"),
-                data = toml.parse(await fs.readTextFile(pat)), coins = data.money;
-            if (coins === undefined) return;
-            setMoney(coins);
         }
 
         await refreshMoney();
@@ -80,14 +95,59 @@ function App() {
     useEffect(() => {
         if (calculateRemainingTime(timestamp, time) === "") return;
         setAvailable(calculateRemainingTime(timestamp, time));
-        let interval = setInterval(() => {
+        let interval = setInterval(async () => {
             setAvailable(calculateRemainingTime(timestamp, time));
-            if (calculateRemainingTime(timestamp, time) === "") clearInterval(interval);
+            if (calculateRemainingTime(timestamp, time) === "") {
+                let giveMoney = 0;
+                switch(time) {
+                    case 15:
+                        giveMoney = 10
+                        break;
+                    case 30:
+                        giveMoney = 25;
+                        break;
+                    case 45:
+                        giveMoney = 40;
+                        break;
+                    case 60:
+                        giveMoney = 60;
+                        break;
+                    case 90:
+                        giveMoney = 95;
+                        break;
+                }
+
+                let pat: string = await path.join(await path.appDataDir(), "data.toml");
+                if (!(await fs.exists(await path.appDataDir()))) await fs.createDir(await path.appDataDir());
+                if (!(await fs.exists(pat))) {
+                    await fs.writeFile(pat, "money=0\ninv_path=\"\"");
+                }
+
+                let data = await fs.readTextFile(pat);
+                let tomlData = toml.parse(data);
+                tomlData.money += giveMoney;
+                await fs.writeFile(pat, `money=${tomlData.money}\ninv_path="${tomlData.inv_path}"`);
+                await refreshMoney();
+
+                return clearInterval(interval)
+            }
         }, 1000)
     }, [timestamp]);
 
+    function onClickClose() {
+        appWindow.close();
+    }
+
+    function onClickMinimize() {
+        appWindow.minimize();
+    }
+
     return (
         <div className={styles.root}>
+            <Toolbar className={styles.toolbar}>
+                <ToolbarButton onClick={onClickMinimize} aria-label="Minimize" icon={<ArrowMinimizeRegular />} />
+                <ToolbarButton onClick={onClickClose} aria-label="Close" icon={<DismissCircleRegular />} />
+            </Toolbar>
             <TabList defaultSelectedValue={page} onTabSelect={onTabSelect}>
                 <Tab value="home">Accueil</Tab>
                 <Tab value="lessons">Cours</Tab>
