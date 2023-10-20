@@ -1,8 +1,8 @@
 import {Button, makeStyles, shorthands, Tab, TabList} from "@fluentui/react-components";
 import { MoneyRegular, TimerRegular } from "@fluentui/react-icons";
 import {fs, path} from "@tauri-apps/api";
-import {useEffect} from "react";
-import TOML from "@iarna/toml";
+import {useEffect, useState} from "react";
+import toml from "toml";
 
 const useStyles = makeStyles({
     root: {
@@ -24,12 +24,25 @@ const useStyles = makeStyles({
 
 function App() {
     const styles = useStyles();
+    const [money, setMoney] = useState(0);
 
     // @ts-ignore
     useEffect(async () => {
-        if (!(await fs.exists(await path.join(await path.appDataDir(), "data.toml")))) {
+        let pat: string = await path.join(await path.appDataDir(), "data.toml");
+        if (!(await fs.exists(await path.appDataDir()))) await fs.createDir(await path.appDataDir());
+        if (!(await fs.exists(pat))) {
+            await fs.writeFile(pat, "money=0\ntimestamp=0\ninv_path=\"\"");
         }
-    })
+
+        async function refreshMoney() {
+                let pat: string = await path.join(await path.appDataDir(), "data.toml"),
+                data = toml.parse(await fs.readTextFile(pat)), coins = data.money;
+            if (coins === undefined) return;
+            setMoney(coins);
+        }
+
+        await refreshMoney();
+    }, [])
 
     return (
         <div className={styles.root}>
@@ -41,7 +54,7 @@ function App() {
                 <Tab value="settings">Paramètres</Tab>
             </TabList>
             <div className={styles.indicator}>
-                <Button className={styles.button_indicator} disabled icon={<MoneyRegular/>}>10</Button>
+                <Button className={styles.button_indicator} id="money" disabled icon={<MoneyRegular/>}>{money.toString()}</Button>
                 <Button className={styles.button_indicator} disabled icon={<TimerRegular/>}>10</Button>
             </div>
         </div>

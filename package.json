@@ -12,10 +12,10 @@
   "dependencies": {
     "@fluentui/react-components": "^9.35.1",
     "@fluentui/react-menu": "^9.12.27",
-    "@iarna/toml": "^2.2.5",
     "@tauri-apps/api": "^1.5.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "toml": "^3.0.0"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^1.5.0",

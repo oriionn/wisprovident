@@ -23,6 +23,7 @@
       "fs": {
         "writeFile": true,
         "readFile": true,
+        "createDir": true,
         "exists": true,
         "scope": ["**"]
       }
