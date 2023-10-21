@@ -1,8 +1,8 @@
 [package]
 name = "wisprovident"
-version = "0.1.1"
-description = "A Tauri App"
-authors = ["you"]
+version = "0.2.1"
+description = "Improvident for Wispy"
+authors = ["oriionn"]
 license = ""
 repository = ""
 edition = "2021"
