@@ -14,6 +14,7 @@ import { useEffect, useState} from "react";
 import toml from "toml";
 import Home from "./pages/Home.tsx";
 import {appWindow} from "@tauri-apps/api/window";
+import Settings from "./pages/Settings.tsx";
 
 const useStyles = makeStyles({
     root: {
@@ -37,7 +38,13 @@ const useStyles = makeStyles({
     toolbar: {
         position: "absolute",
         top: "0",
-        right: "0"
+        right: "0",
+        width: "100vw"
+    },
+    toolbar_items: {
+        position: "absolute",
+        right: "0",
+        top: "0"
     }
 })
 
@@ -62,7 +69,7 @@ function App() {
         let pat: string = await path.join(await path.appDataDir(), "data.toml");
         if (!(await fs.exists(await path.appDataDir()))) await fs.createDir(await path.appDataDir());
         if (!(await fs.exists(pat))) {
-            await fs.writeFile(pat, "money=0\ninv_path=\"\"");
+            await fs.writeFile(pat, "money=0\ninv_path=\"\"\nnotification=true");
         }
 
         await refreshMoney();
@@ -120,19 +127,36 @@ function App() {
                 let pat: string = await path.join(await path.appDataDir(), "data.toml");
                 if (!(await fs.exists(await path.appDataDir()))) await fs.createDir(await path.appDataDir());
                 if (!(await fs.exists(pat))) {
-                    await fs.writeFile(pat, "money=0\ninv_path=\"\"");
+                    await fs.writeFile(pat, "money=0\ninv_path=\"\"\nnotification=true");
                 }
 
                 let data = await fs.readTextFile(pat);
                 let tomlData = toml.parse(data);
                 tomlData.money += giveMoney;
-                await fs.writeFile(pat, `money=${tomlData.money}\ninv_path="${tomlData.inv_path}"`);
+                await fs.writeFile(pat, `money=${tomlData.money}\ninv_path="${tomlData.inv_path}"\nnotification=${tomlData.notification}`);
                 await refreshMoney();
 
                 return clearInterval(interval)
             }
         }, 1000)
     }, [timestamp]);
+
+    const [inv, setInv] = useState("");
+    const [notification, setNotification] = useState(true);
+
+    // @ts-ignore
+    useEffect(async () => {
+        let pat: string = await path.join(await path.appDataDir(), "data.toml");
+        if (!(await fs.exists(await path.appDataDir()))) await fs.createDir(await path.appDataDir());
+        if (!(await fs.exists(pat))) {
+            await fs.writeFile(pat, "money=0\ninv_path=\"\"\nnotification=true");
+        }
+
+        let data = await fs.readTextFile(pat);
+        let tomlData = toml.parse(data);
+        setInv(tomlData.inv_path)
+        setNotification(tomlData.notification)
+    }, [])
 
     function onClickClose() {
         appWindow.close();
@@ -144,9 +168,11 @@ function App() {
 
     return (
         <div className={styles.root}>
-            <Toolbar className={styles.toolbar}>
-                <ToolbarButton onClick={onClickMinimize} aria-label="Minimize" icon={<ArrowMinimizeRegular />} />
-                <ToolbarButton onClick={onClickClose} aria-label="Close" icon={<DismissCircleRegular />} />
+            <Toolbar data-tauri-drag-region className={styles.toolbar}>
+                <div className={styles.toolbar_items}>
+                    <ToolbarButton onClick={onClickMinimize} aria-label="Minimize" icon={<ArrowMinimizeRegular />} />
+                    <ToolbarButton onClick={onClickClose} aria-label="Close" icon={<DismissCircleRegular />} />
+                </div>
             </Toolbar>
             <TabList defaultSelectedValue={page} onTabSelect={onTabSelect}>
                 <Tab value="home">Accueil</Tab>
@@ -162,6 +188,7 @@ function App() {
 
             <div id="page" className={styles.page}>
                 { page === "home" && <Home setTimestamp={setTimestamp} timestamp={timestamp} setTime={setTime} time={time} timeAvailable={timeAvailable} start={start} setStart={setStart} />}
+                { page === "settings" && <Settings inv={inv} setInv={setInv} notification={notification} setNotification={setNotification} /> }
             </div>
         </div>
     );
