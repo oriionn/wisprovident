@@ -1,12 +1,16 @@
 import {
     Button,
+    Card,
+    CardHeader,
     makeStyles,
     SelectTabData,
     SelectTabEvent,
     shorthands,
     Tab,
     TabList,
-    Toolbar, ToolbarButton
+    Toolbar, ToolbarButton,
+    Text,
+    Caption1
 } from "@fluentui/react-components";
 import { MoneyRegular, TimerRegular, DismissCircleRegular, ArrowMinimizeRegular } from "@fluentui/react-icons";
 import {fs, path} from "@tauri-apps/api";
@@ -46,6 +50,28 @@ const useStyles = makeStyles({
         position: "absolute",
         right: "0",
         top: "0"
+    },
+    logo: {
+        ...shorthands.borderRadius("4px"),
+        width: "48px",
+        height: "48px",
+    },
+    description: {
+        ...shorthands.margin(0, 0, "12px"),
+    },
+    text: {
+        ...shorthands.margin(0),
+    },
+    notification: {
+        width: "283px",
+        height: "133px"
+    },
+    notificiation_closebutton: {
+        position: "absolute",
+        right: "0",
+        top: "0",
+        marginTop: "10px",
+        marginRight: "10px"
     }
 })
 
@@ -137,13 +163,15 @@ function App() {
                 await refreshMoney();
 
                 const webview = new WebviewWindow('notification', {
-                    url: 'https://github.com/tauri-apps/tauri',
+                    url: window.location.href + '?notif=true',
                     decorations: false,
                     alwaysOnTop: true,
                     width: 300,
                     height: 150,
                     x: 20,
-                    y: 20
+                    y: 20,
+                    resizable: false,
+                    skipTaskbar: true
                 });
 
                 webview.once("tauri://created", async function() {
@@ -180,30 +208,68 @@ function App() {
         appWindow.minimize();
     }
 
+    const [isNotification, setIsNotification] = useState(false);
+
+    useEffect(() => {
+        let queryString = window.location.search;
+        let urlParams = new URLSearchParams(queryString)
+        let notif = urlParams.get("notif");
+        
+        if (!notif) return setIsNotification(false);
+
+        // @ts-ignore
+        if (notif === "true" || notif === true) return setIsNotification(true);
+    }, [])
+
     return (
         <div className={styles.root}>
-            <Toolbar data-tauri-drag-region className={styles.toolbar}>
-                <div className={styles.toolbar_items}>
-                    <ToolbarButton onClick={onClickMinimize} aria-label="Minimize" icon={<ArrowMinimizeRegular />} />
-                    <ToolbarButton onClick={onClickClose} aria-label="Close" icon={<DismissCircleRegular />} />
-                </div>
-            </Toolbar>
-            <TabList defaultSelectedValue={page} onTabSelect={onTabSelect}>
-                <Tab value="home">Accueil</Tab>
-                <Tab value="lessons">Cours</Tab>
-                <Tab value="comprehensions">Compréhensions</Tab>
-                <Tab value="shop">Boutique</Tab>
-                <Tab value="settings">Paramètres</Tab>
-            </TabList>
-            <div className={styles.indicator}>
-                <Button className={styles.button_indicator} id="money" disabled icon={<MoneyRegular/>}>{money.toString()}</Button>
-                {timeAvailable !== "" && <Button className={styles.button_indicator} disabled icon={<TimerRegular/>}>{timeAvailable}</Button>}
-            </div>
+            {isNotification === true && <>
+                <section>
+                    <Card className={styles.notification}>
+                        <CardHeader 
+                            image={
+                                <img
+                                    className={styles.logo}
+                                    src="icon.png"
+                                    alt="Wisprovident"
+                                />
+                            }
+                            header={<Text weight="semibold">Wisprovident</Text>}
+                            description={<Caption1 className={styles.description}>Fin du chronomètre</Caption1>}
+                        />
 
-            <div id="page" className={styles.page}>
-                { page === "home" && <Home setTimestamp={setTimestamp} timestamp={timestamp} setTime={setTime} time={time} timeAvailable={timeAvailable} start={start} setStart={setStart} />}
-                { page === "settings" && <Settings inv={inv} setInv={setInv} notification={notification} setNotification={setNotification} /> }
-            </div>
+                        <p className={styles.text}>
+                            Le chronomètre que vous avez lancé est terminé !
+                        </p>
+
+                        <Button onClick={onClickClose} className={styles.notificiation_closebutton} icon={<DismissCircleRegular />}></Button>
+                    </Card>
+                </section>
+            </>}
+            {isNotification === false &&  <>
+                <Toolbar data-tauri-drag-region className={styles.toolbar}>
+                    <div className={styles.toolbar_items}>
+                        <ToolbarButton onClick={onClickMinimize} aria-label="Minimize" icon={<ArrowMinimizeRegular />} />
+                        <ToolbarButton onClick={onClickClose} aria-label="Close" icon={<DismissCircleRegular />} />
+                    </div>
+                </Toolbar>
+                <TabList defaultSelectedValue={page} onTabSelect={onTabSelect}>
+                    <Tab value="home">Accueil</Tab>
+                    <Tab value="lessons">Cours</Tab>
+                    <Tab value="comprehensions">Compréhensions</Tab>
+                    <Tab value="shop">Boutique</Tab>
+                    <Tab value="settings">Paramètres</Tab>
+                </TabList>
+                <div className={styles.indicator}>
+                    <Button className={styles.button_indicator} id="money" disabled icon={<MoneyRegular/>}>{money.toString()}</Button>
+                    {timeAvailable !== "" && <Button className={styles.button_indicator} disabled icon={<TimerRegular/>}>{timeAvailable}</Button>}
+                </div>
+
+                <div id="page" className={styles.page}>
+                    { page === "home" && <Home setTimestamp={setTimestamp} timestamp={timestamp} setTime={setTime} time={time} timeAvailable={timeAvailable} start={start} setStart={setStart} />}
+                    { page === "settings" && <Settings inv={inv} setInv={setInv} notification={notification} setNotification={setNotification} /> }
+                </div>
+            </> }
         </div>
     );
 }
