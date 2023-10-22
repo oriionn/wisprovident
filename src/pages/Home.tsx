@@ -14,8 +14,8 @@ function Home(props: any) {
     async function setTime(event: React.MouseEvent<HTMLElement>) {
         let target = event.target;
         // @ts-ignore
-        // await props.setTime(parseInt(target.dataset.time));
-        await props.setTime(0.01)
+        await props.setTime(parseInt(target.dataset.time));
+        // await props.setTime(0.01)
         await props.setTimestamp(Date.now());
         props.setStart(false);
     }
