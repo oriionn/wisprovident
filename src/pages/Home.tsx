@@ -15,6 +15,7 @@ function Home(props: any) {
         let target = event.target;
         // @ts-ignore
         await props.setTime(parseInt(target.dataset.time));
+        // await props.setTime(0.01)
         await props.setTimestamp(Date.now());
         props.setStart(false);
     }

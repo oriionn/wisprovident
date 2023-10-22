@@ -13,8 +13,9 @@ import {fs, path} from "@tauri-apps/api";
 import { useEffect, useState} from "react";
 import toml from "toml";
 import Home from "./pages/Home.tsx";
-import {appWindow} from "@tauri-apps/api/window";
+import {appWindow, LogicalPosition, LogicalSize, WebviewWindow} from "@tauri-apps/api/window";
 import Settings from "./pages/Settings.tsx";
+import { invoke } from "@tauri-apps/api/tauri";
 
 const useStyles = makeStyles({
     root: {
@@ -71,7 +72,6 @@ function App() {
         if (!(await fs.exists(pat))) {
             await fs.writeFile(pat, "money=0\ninv_path=\"\"\nnotification=true");
         }
-
         await refreshMoney();
     }, [])
 
@@ -135,6 +135,20 @@ function App() {
                 tomlData.money += giveMoney;
                 await fs.writeFile(pat, `money=${tomlData.money}\ninv_path="${tomlData.inv_path}"\nnotification=${tomlData.notification}`);
                 await refreshMoney();
+
+                const webview = new WebviewWindow('notification', {
+                    url: 'https://github.com/tauri-apps/tauri',
+                    decorations: false,
+                    alwaysOnTop: true,
+                    width: 300,
+                    height: 150,
+                    x: 20,
+                    y: 20
+                });
+
+                webview.once("tauri://created", async function() {
+                    invoke("play_sound");
+                })
 
                 return clearInterval(interval)
             }
