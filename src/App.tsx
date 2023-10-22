@@ -171,11 +171,14 @@ function App() {
                     x: 20,
                     y: 20,
                     resizable: false,
-                    skipTaskbar: true
                 });
 
-                webview.once("tauri://created", async function() {
-                    invoke("play_sound");
+                await webview.once("tauri://created", async function () {
+                    await invoke("play_sound");
+
+                    setTimeout(async () => {
+                        if (await webview.isClosable()) await webview.close();
+                    }, 5000)
                 })
 
                 return clearInterval(interval)
@@ -221,11 +224,17 @@ function App() {
         if (notif === "true" || notif === true) return setIsNotification(true);
     }, [])
 
+    async function onClickNotif() {
+        let window = WebviewWindow.getByLabel('main');
+        await window?.setFocus();
+        await appWindow.close();
+    }
+
     return (
         <div className={styles.root}>
-            {isNotification === true && <>
+            {isNotification && <>
                 <section>
-                    <Card className={styles.notification}>
+                    <Card className={styles.notification} onClick={onClickNotif}>
                         <CardHeader 
                             image={
                                 <img
@@ -246,7 +255,7 @@ function App() {
                     </Card>
                 </section>
             </>}
-            {isNotification === false &&  <>
+            {!isNotification &&  <>
                 <Toolbar data-tauri-drag-region className={styles.toolbar}>
                     <div className={styles.toolbar_items}>
                         <ToolbarButton onClick={onClickMinimize} aria-label="Minimize" icon={<ArrowMinimizeRegular />} />
