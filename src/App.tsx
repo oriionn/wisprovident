@@ -13,7 +13,7 @@ import {fs, path} from "@tauri-apps/api";
 import { useEffect, useState} from "react";
 import toml from "toml";
 import Home from "./pages/Home.tsx";
-import {appWindow, LogicalPosition, LogicalSize, WebviewWindow} from "@tauri-apps/api/window";
+import {appWindow, WebviewWindow} from "@tauri-apps/api/window";
 import Settings from "./pages/Settings.tsx";
 import { invoke } from "@tauri-apps/api/tauri";
 
