@@ -21,6 +21,7 @@ import {appWindow, WebviewWindow} from "@tauri-apps/api/window";
 import Settings from "./pages/Settings.tsx";
 import { invoke } from "@tauri-apps/api/tauri";
 import Lessons from "./pages/Lessons.tsx";
+import Comprehensions from "./pages/Comprehensions.tsx";
 
 const useStyles = makeStyles({
     root: {
@@ -88,6 +89,10 @@ function App() {
     const [lessonInit, setLessonInit] = useState(false);
     const [isLessonOpen, setIsLessonOpen] = useState(false);
     const [actualLessonVideo, setLessonActualVideo] = useState({});
+    const [comprehensions, setComprehensions] = useState([]);
+    const [comprehensionInit, setComprehensionInit] = useState(false);
+    const [isComprehensionOpen, setIsComprehensionOpen] = useState(false);
+    const [actualComprehensionVideo, setComprehensionActualVideo] = useState({});
 
     async function refreshMoney() {
         let pat: string = await path.join(await path.appDataDir(), "data.toml"),
@@ -241,11 +246,14 @@ function App() {
     useEffect(async () => {
         let pat: string = await path.join(await path.appDataDir(), "lessons.json");
         if (!(await fs.exists(await path.appDataDir()))) await fs.createDir(await path.appDataDir());
-        if (!(await fs.exists(pat))) {
-            await fs.writeFile(pat, "[]");
-        }
+        if (!(await fs.exists(pat))) await fs.writeFile(pat, "[]");
 
         setLessons(JSON.parse(await fs.readTextFile(pat)))
+
+        pat = await path.join(await path.appDataDir(), "comprehensions.json");
+        if (!(await fs.exists(await path.appDataDir()))) await fs.createDir(await path.appDataDir());
+        if (!(await fs.exists(pat))) await fs.writeFile(pat, "[]");
+        setComprehensions(JSON.parse(await fs.readTextFile(pat)))
 
         let queryString = window.location.search;
         let urlParams = new URLSearchParams(queryString)
@@ -275,6 +283,19 @@ function App() {
 
         updateLessons();
     }, [lessons]);
+
+    useEffect(() => {
+        if (!comprehensionInit) return setComprehensionInit(true);
+        async function updateComprehensions() {
+            let pat: string = await path.join(await path.appDataDir(), "comprehensions.json");
+            if (!(await fs.exists(await path.appDataDir()))) await fs.createDir(await path.appDataDir());
+            if (!(await fs.exists(pat))) await fs.writeFile(pat, "[]");
+
+            await fs.writeFile(pat, JSON.stringify(comprehensions));
+        }
+
+        updateComprehensions();
+    }, [comprehensions]);
 
     return (
         <div className={styles.root}>
@@ -324,6 +345,7 @@ function App() {
                     { page === "home" && <Home setTimestamp={setTimestamp} timestamp={timestamp} setTime={setTime} time={time} timeAvailable={timeAvailable} start={start} setStart={setStart} />}
                     { page === "settings" && <Settings inv={inv} setInv={setInv} notification={notification} setNotification={setNotification} /> }
                     { page === "lessons" && <Lessons data={lessons} setData={setLessons} isOpen={isLessonOpen} setIsOpen={setIsLessonOpen} setActualVideo={setLessonActualVideo} actualVideo={actualLessonVideo} /> }
+                    { page === "comprehensions" && <Comprehensions data={comprehensions} setData={setComprehensions} isOpen={isComprehensionOpen} setIsOpen={setIsComprehensionOpen} setActualVideo={setComprehensionActualVideo} actualVideo={actualComprehensionVideo} /> }
                 </div>
             </> }
         </div>
