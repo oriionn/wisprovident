@@ -10,11 +10,12 @@ import {
     TableRow, Toast, Toaster, ToastTitle, useToastController
 } from "@fluentui/react-components";
 import {useId} from "react";
-import {fs, path} from "@tauri-apps/api";
+import { DeleteRegular } from "@fluentui/react-icons";
 
 const columns = [
     { columnKey: "name", label: "Nom" },
-    { columnKey: "status", label: "Statut" }
+    { columnKey: "status", label: "Statut" },
+    { columnKey: "action", label: "Action" }
 ]
 
 const useStyles = makeStyles({
@@ -36,16 +37,6 @@ function Lessons(props) {
     const toasterId = useId("toaster");
     const { dispatchToast } = useToastController(toasterId);
 
-    async function updateLessons() {
-        let pat: string = await path.join(await path.appDataDir(), "lessons.json");
-        if (!(await fs.exists(await path.appDataDir()))) await fs.createDir(await path.appDataDir());
-        if (!(await fs.exists(pat))) {
-            await fs.writeFile(pat, "[]");
-        }
-
-        await fs.writeFile(pat, JSON.stringify(data));
-    }
-
     const onChange: SelectProps["onChange"] = async (event, dataa) => {
         // @ts-ignore
         if (!event.target.dataset.id) return;
@@ -62,7 +53,6 @@ function Lessons(props) {
             }
         });
         setData(nextData);
-        await updateLessons();
     };
 
     async function createLesson() {
@@ -94,14 +84,31 @@ function Lessons(props) {
                 { intent: "error" }
             );
 
-        setData([
+        if (data.length === 0) { // @ts-ignore
+            setData([{ name: name.value, link: link.value, status: 0 }])
+        }
+        else setData([
             ...data,
             // @ts-ignore
             { name: name.value, link: link.value, status: 0 }
-        ]);
-        await updateLessons();
+        ])
+
+        // @ts-ignore
+        document.getElementById("closeModal").click();
     }
 
+    async function deleteLesson(e: any) {
+        let id = e.target.dataset.id;
+        // @ts-ignore
+        if (!id) id = e.target.parent.dataset.id;
+        if (!id) return;
+        // @ts-ignore
+        const nextData = data.filter((d, i) => i !== parseInt(id))
+        console.log(nextData)
+        setData(nextData);
+    }
+
+    // @ts-ignore
     return (<>
         <Dialog modalType="non-modal">
             <DialogTrigger disableButtonEnhancement>
@@ -122,7 +129,7 @@ function Lessons(props) {
                     </DialogContent>
                     <DialogActions>
                         <DialogTrigger disableButtonEnhancement>
-                            <Button appearance="secondary">Close</Button>
+                            <Button appearance="secondary" id="closeModal">Close</Button>
                         </DialogTrigger>
                         <Button onClick={createLesson} appearance="primary">
                             Créer le cours
@@ -144,18 +151,23 @@ function Lessons(props) {
             <TableBody>
                 {
                     // @ts-ignore
-                    data.map((item, i) => (
-                        <TableRow data-id={i} key={i}>
-                            <TableCell><Link as="a" href={item.link}>{item.name}</Link></TableCell>
-                            <TableCell>
-                                <Select onChange={onChange} value={ item.status === 0 ? "À faire":item.status === 1 ? "À revoir":"Archivés" } data-id={i}>
-                                    <option>À faire</option>
-                                    <option>À revoir</option>
-                                    <option>Archivés</option>
-                                </Select>
-                            </TableCell>
-                        </TableRow>
-                    ))
+                    data.map((item, i) => {
+                        if (item !== undefined || !item.link) return (
+                            <TableRow data-id={i} key={i}>
+                                <TableCell><Link target="_tauri" as="a" href={item.link}>{item.name}</Link></TableCell>
+                                <TableCell>
+                                    <Select onChange={onChange} value={ item.status === 0 ? "À faire":item.status === 1 ? "À revoir":"Archivés" } data-id={i}>
+                                        <option>À faire</option>
+                                        <option>À revoir</option>
+                                        <option>Archivés</option>
+                                    </Select>
+                                </TableCell>
+                                <TableCell>
+                                    <Button onClick={deleteLesson} data-id={i} icon={<DeleteRegular data-id={i} />} aria-label="Supprimer" />
+                                </TableCell>
+                            </TableRow>
+                        );
+                    })
                 }
             </TableBody>
         </Table>

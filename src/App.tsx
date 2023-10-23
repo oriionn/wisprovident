@@ -30,7 +30,7 @@ const useStyles = makeStyles({
         justifyContent: "flex-start",
     },
     indicator: {
-        position: "absolute",
+        position: "fixed",
         bottom: "0",
         right: "0",
         ...shorthands.margin(["10px", "5px"]),
@@ -85,6 +85,7 @@ function App() {
     const [timeAvailable, setAvailable] = useState("")
     const [start, setStart] = useState(true);
     const [lessons, setLessons] = useState([]);
+    const [lessonInit, setLessonInit] = useState(false);
 
     async function refreshMoney() {
         let pat: string = await path.join(await path.appDataDir(), "data.toml"),
@@ -240,6 +241,19 @@ function App() {
         await window?.setFocus();
         await appWindow.close();
     }
+
+    useEffect(() => {
+        if (!lessonInit) return setLessonInit(true);
+        async function updateLessons() {
+            let pat: string = await path.join(await path.appDataDir(), "lessons.json");
+            if (!(await fs.exists(await path.appDataDir()))) await fs.createDir(await path.appDataDir());
+            if (!(await fs.exists(pat))) await fs.writeFile(pat, "[]");
+
+            await fs.writeFile(pat, JSON.stringify(lessons));
+        }
+
+        updateLessons();
+    }, [lessons]);
 
     return (
         <div className={styles.root}>
