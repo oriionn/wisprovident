@@ -20,6 +20,7 @@ import Home from "./pages/Home.tsx";
 import {appWindow, WebviewWindow} from "@tauri-apps/api/window";
 import Settings from "./pages/Settings.tsx";
 import { invoke } from "@tauri-apps/api/tauri";
+import Lessons from "./pages/Lessons.tsx";
 
 const useStyles = makeStyles({
     root: {
@@ -83,6 +84,7 @@ function App() {
     const [time, setTime] = useState(0);
     const [timeAvailable, setAvailable] = useState("")
     const [start, setStart] = useState(true);
+    const [lessons, setLessons] = useState([]);
 
     async function refreshMoney() {
         let pat: string = await path.join(await path.appDataDir(), "data.toml"),
@@ -213,7 +215,16 @@ function App() {
 
     const [isNotification, setIsNotification] = useState(false);
 
-    useEffect(() => {
+    // @ts-ignore
+    useEffect(async () => {
+        let pat: string = await path.join(await path.appDataDir(), "lessons.json");
+        if (!(await fs.exists(await path.appDataDir()))) await fs.createDir(await path.appDataDir());
+        if (!(await fs.exists(pat))) {
+            await fs.writeFile(pat, "[]");
+        }
+
+        setLessons(JSON.parse(await fs.readTextFile(pat)))
+
         let queryString = window.location.search;
         let urlParams = new URLSearchParams(queryString)
         let notif = urlParams.get("notif");
@@ -277,6 +288,7 @@ function App() {
                 <div id="page" className={styles.page}>
                     { page === "home" && <Home setTimestamp={setTimestamp} timestamp={timestamp} setTime={setTime} time={time} timeAvailable={timeAvailable} start={start} setStart={setStart} />}
                     { page === "settings" && <Settings inv={inv} setInv={setInv} notification={notification} setNotification={setNotification} /> }
+                    { page === "lessons" && <Lessons data={lessons} setData={setLessons} /> }
                 </div>
             </> }
         </div>
