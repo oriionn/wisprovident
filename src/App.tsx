@@ -12,7 +12,7 @@ import {
     Text,
     Caption1
 } from "@fluentui/react-components";
-import { MoneyRegular, TimerRegular, DismissCircleRegular, ArrowMinimizeRegular } from "@fluentui/react-icons";
+import { MoneyRegular, TimerRegular, DismissCircleRegular, ArrowMinimizeRegular, HomeFilled, BookOpenFilled, MusicNote2Filled, BuildingShopFilled, SettingsFilled } from "@fluentui/react-icons";
 import {fs, path} from "@tauri-apps/api";
 import { useEffect, useState} from "react";
 import toml from "toml";
@@ -86,6 +86,8 @@ function App() {
     const [start, setStart] = useState(true);
     const [lessons, setLessons] = useState([]);
     const [lessonInit, setLessonInit] = useState(false);
+    const [isLessonOpen, setIsLessonOpen] = useState(false);
+    const [actualLessonVideo, setLessonActualVideo] = useState({});
 
     async function refreshMoney() {
         let pat: string = await path.join(await path.appDataDir(), "data.toml"),
@@ -93,6 +95,25 @@ function App() {
         if (coins === undefined) return;
         setMoney(coins);
     }
+
+    useEffect(() => {
+        const isDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        if (isDarkMode) {
+            Array.from(document.getElementsByClassName("fui-FluentProviderr0")).forEach(e => {
+                // @ts-ignore
+                e.style.setProperty("--colorNeutralBackground1", "rgba(41, 41, 41, 0.5)");
+            })
+            // @ts-ignore
+            document.querySelector('div[dir="ltr"]').className = "";
+        } else {
+            Array.from(document.getElementsByClassName("fui-FluentProviderr0")).forEach(e => {
+                // @ts-ignore
+                e.style.setProperty("--colorNeutralBackground1", "rgba(255, 255, 255, 0.5)");
+            })
+            // @ts-ignore
+            document.querySelector('div[dir="ltr"]').className = "";
+        }
+    }, [])
 
     // @ts-ignore
     useEffect(async () => {
@@ -288,11 +309,11 @@ function App() {
                     </div>
                 </Toolbar>
                 <TabList defaultSelectedValue={page} onTabSelect={onTabSelect}>
-                    <Tab value="home">Accueil</Tab>
-                    <Tab value="lessons">Cours</Tab>
-                    <Tab value="comprehensions">Compréhensions</Tab>
-                    <Tab value="shop">Boutique</Tab>
-                    <Tab value="settings">Paramètres</Tab>
+                    <Tab value="home" icon={<HomeFilled />}>Accueil</Tab>
+                    <Tab value="lessons" icon={<BookOpenFilled />}>Cours</Tab>
+                    <Tab value="comprehensions" icon={<MusicNote2Filled />}>Compréhensions</Tab>
+                    <Tab value="shop" icon={<BuildingShopFilled />}>Boutique</Tab>
+                    <Tab value="settings" icon={<SettingsFilled />}>Paramètres</Tab>
                 </TabList>
                 <div className={styles.indicator}>
                     <Button className={styles.button_indicator} id="money" disabled icon={<MoneyRegular/>}>{money.toString()}</Button>
@@ -302,7 +323,7 @@ function App() {
                 <div id="page" className={styles.page}>
                     { page === "home" && <Home setTimestamp={setTimestamp} timestamp={timestamp} setTime={setTime} time={time} timeAvailable={timeAvailable} start={start} setStart={setStart} />}
                     { page === "settings" && <Settings inv={inv} setInv={setInv} notification={notification} setNotification={setNotification} /> }
-                    { page === "lessons" && <Lessons data={lessons} setData={setLessons} /> }
+                    { page === "lessons" && <Lessons data={lessons} setData={setLessons} isOpen={isLessonOpen} setIsOpen={setIsLessonOpen} setActualVideo={setLessonActualVideo} actualVideo={actualLessonVideo} /> }
                 </div>
             </> }
         </div>

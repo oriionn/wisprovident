@@ -1,6 +1,11 @@
 import ReactDOM from "react-dom/client";
 import App from "./App";
-import {FluentProvider, teamsDarkTheme, teamsLightTheme, useThemeClassName} from '@fluentui/react-components';
+import {
+    FluentProvider,
+    teamsDarkTheme,
+    teamsLightTheme,
+    useThemeClassName
+} from '@fluentui/react-components';
 import {useEffect} from "react";
 
 function ApplyToBody() {

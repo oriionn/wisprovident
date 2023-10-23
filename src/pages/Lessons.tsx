@@ -10,7 +10,8 @@ import {
     TableRow, Toast, Toaster, ToastTitle, useToastController
 } from "@fluentui/react-components";
 import {useId} from "react";
-import { DeleteRegular } from "@fluentui/react-icons";
+import { DeleteRegular, DismissRegular } from "@fluentui/react-icons";
+import {DrawerBody, DrawerHeader, DrawerHeaderTitle, DrawerOverlay } from "@fluentui/react-components/unstable";
 
 const columns = [
     { columnKey: "name", label: "Nom" },
@@ -31,11 +32,21 @@ const useStyles = makeStyles({
 
 // @ts-ignore
 function Lessons(props) {
-    const {data, setData} = props;
+    const {data, setData, actualVideo, setActualVideo, setIsOpen, isOpen} = props;
     const styles = useStyles();
     // @ts-ignore
     const toasterId = useId("toaster");
     const { dispatchToast } = useToastController(toasterId);
+
+    function getYouTubeVideoId(url: string) {
+        let regExp = /^(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+        let match = url.match(regExp);
+        if (match && match[1]) {
+            return match[1];
+        } else {
+            return null;
+        }
+    }
 
     const onChange: SelectProps["onChange"] = async (event, dataa) => {
         // @ts-ignore
@@ -108,8 +119,54 @@ function Lessons(props) {
         setData(nextData);
     }
 
+    function goLink(e: any) {
+        let t = e.target;
+        let href = t.dataset.href;
+        let target = t.dataset.target;
+        let id = t.dataset.id;
+
+        let regex = /^(https?:\/\/)?(www\.)?(youtube|youtu|youtube-nocookie)\.(com|be)\/(watch\?v=|embed\/|v\/|.+\?v=)?([^&=%\?]{11})/;
+        if (regex.test(href)) {
+            setActualVideo(data[id]);
+            setIsOpen(true);
+        } else {
+            window.open(href, target);
+        }
+    }
+
     // @ts-ignore
     return (<>
+        <DrawerOverlay
+            position="start"
+            open={isOpen}
+            onOpenChange={(_, { open }) => setIsOpen(open)}
+            style={{ width: "450px" }}
+        >
+            <DrawerHeader>
+                <DrawerHeaderTitle
+                    action={
+                        <Button
+                            appearance="subtle"
+                            aria-label="Close"
+                            icon={<DismissRegular />}
+                            onClick={() => setIsOpen(false)}
+                        />
+                    }
+                >
+                    {actualVideo.name}
+                </DrawerHeaderTitle>
+            </DrawerHeader>
+
+            <DrawerBody>
+                <iframe src={"https://www.youtube.com/embed/" + getYouTubeVideoId(actualVideo.link === undefined ? "https://www.youtube.com/watch?v=oMIPClCEYjo&pp=ygUFYXl3ZW4%3D":actualVideo.link)}
+                        title={actualVideo.name}
+                        width="400px"
+                        height="250px"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowFullScreen></iframe>
+            </DrawerBody>
+        </DrawerOverlay>
         <Dialog modalType="non-modal">
             <DialogTrigger disableButtonEnhancement>
                 <Button>Ajouter un cours</Button>
@@ -154,7 +211,7 @@ function Lessons(props) {
                     data.map((item, i) => {
                         if (item !== undefined || !item.link) return (
                             <TableRow data-id={i} key={i}>
-                                <TableCell><Link target="_tauri" as="a" href={item.link}>{item.name}</Link></TableCell>
+                                <TableCell><Link onClick={goLink} data-id={i} data-target="_tauri" as="button" data-href={item.link}>{item.name}</Link></TableCell>
                                 <TableCell>
                                     <Select onChange={onChange} value={ item.status === 0 ? "À faire":item.status === 1 ? "À revoir":"Archivés" } data-id={i}>
                                         <option>À faire</option>

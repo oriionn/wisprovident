@@ -8,7 +8,7 @@
   },
   "package": {
     "productName": "wisprovident",
-    "version": "0.3.0"
+    "version": "0.3.1"
   },
   "tauri": {
     "allowlist": {
@@ -59,10 +59,11 @@
         "fullscreen": false,
         "resizable": true,
         "title": "Wisprovident",
-        "width": 800,
+        "width": 1000,
         "height": 600,
         "decorations": false,
-        "center": true
+        "center": true,
+        "transparent": true
       }
     ]
   }
