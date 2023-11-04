@@ -31,7 +31,11 @@ function Settings(props: any) {
 
     async function changeInv() {
         let selected = await open({
-            multiple: false
+            multiple: false,
+            filters: [{
+                name: "JSON",
+                extensions: ["json"]
+            }]
         });
 
         if (Array.isArray(selected)) return;

@@ -1,3 +1,4 @@
+// @ts-ignore
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import {
@@ -5,6 +6,7 @@ import {
     teamsDarkTheme,
     teamsLightTheme,
     useThemeClassName
+  // @ts-ignore
 } from '@fluentui/react-components';
 import {useEffect} from "react";
 

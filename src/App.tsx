@@ -22,6 +22,7 @@ import Settings from "./pages/Settings.tsx";
 import { invoke } from "@tauri-apps/api/tauri";
 import Lessons from "./pages/Lessons.tsx";
 import Comprehensions from "./pages/Comprehensions.tsx";
+import Shop from "./pages/Shop.tsx";
 
 const useStyles = makeStyles({
     root: {
@@ -127,6 +128,11 @@ function App() {
         if (!(await fs.exists(pat))) {
             await fs.writeFile(pat, "money=0\ninv_path=\"\"\nnotification=true");
         }
+
+        let data = await fs.readTextFile(pat);
+        let tomlData = toml.parse(data);
+        setInv(tomlData.inv_path)
+        setNotification(tomlData.notification)
         await refreshMoney();
     }, [])
 
@@ -217,20 +223,6 @@ function App() {
 
     const [inv, setInv] = useState("");
     const [notification, setNotification] = useState(true);
-
-    // @ts-ignore
-    useEffect(async () => {
-        let pat: string = await path.join(await path.appDataDir(), "data.toml");
-        if (!(await fs.exists(await path.appDataDir()))) await fs.createDir(await path.appDataDir());
-        if (!(await fs.exists(pat))) {
-            await fs.writeFile(pat, "money=0\ninv_path=\"\"\nnotification=true");
-        }
-
-        let data = await fs.readTextFile(pat);
-        let tomlData = toml.parse(data);
-        setInv(tomlData.inv_path)
-        setNotification(tomlData.notification)
-    }, [])
 
     function onClickClose() {
         appWindow.close();
@@ -346,6 +338,7 @@ function App() {
                     { page === "settings" && <Settings inv={inv} setInv={setInv} notification={notification} setNotification={setNotification} /> }
                     { page === "lessons" && <Lessons data={lessons} setData={setLessons} isOpen={isLessonOpen} setIsOpen={setIsLessonOpen} setActualVideo={setLessonActualVideo} actualVideo={actualLessonVideo} /> }
                     { page === "comprehensions" && <Comprehensions data={comprehensions} setData={setComprehensions} isOpen={isComprehensionOpen} setIsOpen={setIsComprehensionOpen} setActualVideo={setComprehensionActualVideo} actualVideo={actualComprehensionVideo} /> }
+                    { page === "shop" && <Shop money={money} refreshMoney={refreshMoney} inv={inv} /> }
                 </div>
             </> }
         </div>
