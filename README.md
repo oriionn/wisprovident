@@ -1,7 +1,7 @@
 # Wisprovident
 ![wakatime](https://wakatime.com/badge/user/a2f40b30-8030-4e02-a7ac-93f94dbf04c6/project/018b4d86-1d85-47bb-8e75-bdf3eecc3822.svg)
 
-Ce projet est une réécriture complète dans un autre langage de [Improvident](https://github.com/Aywen1/improvident) mais pour la réécriture complète de [Wispy](https://github.com/Aywen1/wispy) qui s'appelle [SuperWispy](https://github.com/SomeBoringNerd/wispy).
+Ce projet est une réécriture complète dans un autre langage de [Improvident](https://github.com/Aywen1/improvident) mais pour une version de [Wispy](https://github.com/Aywen1/wispy) qui s'appelle [Wispy+](https://github.com/Alexandre-slw/wispy).
 
 ## Installation
 Une release est distribué [ici](https://github.com/oriionn/wisprovident/releases).
